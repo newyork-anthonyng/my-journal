@@ -3,6 +3,13 @@ import styles from '../styles/Home.module.css'
 import { useMachine } from '@xstate/react';
 import journalMachine from '../clients/machines/entries';
 
+function getTodaysDate() {
+  const date = (new Date()).toISOString().split('T')[0];
+  return date;
+}
+
+const todaysDate = getTodaysDate();
+
 export default function Home() {
   const [state, send] = useMachine(journalMachine);
   const { entries, todaysEntry, text } = state.context;
@@ -28,7 +35,7 @@ export default function Home() {
         </Head>
 
         <div>
-          <time dateTime="2021-02-17">February 17, 2021</time>
+          <time dateTime={todaysDate}>{todaysDate}</time>
 
           <h2>Previous entries</h2>
 
@@ -69,7 +76,7 @@ export default function Home() {
         </Head>
 
         <div>
-          <time dateTime="2021-02-17">February 17, 2021</time>
+          <time dateTime={todaysDate}>{todaysDate}</time>
 
           <h2>Previous entries</h2>
 
