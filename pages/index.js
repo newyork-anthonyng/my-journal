@@ -1,47 +1,77 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-
-// Today's date
-// Make "api" call to get previous journal entries for the date
-// Create, Read, Update allow user to save journal entry
-
-const data = {
-  entries: [
-    {
-      date: "2021-02-16",
-      text: "This was a bad day"
-    },
-    {
-      date: "2021-02-15",
-      text: "This was a great day"
-    }
-  ]
-};
+import { useMachine } from '@xstate/react';
+import journalMachine from '../clients/machines/entries';
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Line by line Journal</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+  const [state, send] = useMachine(journalMachine);
+  const { entries, todaysEntry } = state.context;
 
-      <div>
-        <time datetime="2021-02-17">February 17, 2021</time>
+  if (state.matches("loading")) {
+    return <p>Loading...</p>
+  }
 
-        <h2>Previous entries</h2>
+  if (state.matches("error")) {
+    return <p>There was a problem loading. Please refresh the page.</p>
+  }
 
-        {
-          data.entries.map(entry => {
-            return <div key={entry.date}>
-              <time datetime={entry.date}>{entry.date}</time>
-              <p>{entry.text}</p>
-            </div>
-          })
-        }
+  if (state.matches("read")) {
+    return (
+      <div className={styles.container}>
+        <Head>
+          <title>Line by line Journal</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-        <textarea placeholder="Tell us about your day" />
+        <div>
+          <time dateTime="2021-02-17">February 17, 2021</time>
+
+          <h2>Previous entries</h2>
+
+          {
+            entries.map(entry => {
+              return <div key={entry.date}>
+                <time dateTime={entry.date}>{entry.date}</time>
+                <p>{entry.text}</p>
+              </div>
+            })
+          }
+
+          <h2>Today's Entry</h2>
+          <div>
+            <time dateTime={todaysEntry.date}>{todaysEntry.date}</time>
+            <p>{todaysEntry.text}</p>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
+
+  if (state.matches("write")) {
+    return (
+      <div className={styles.container}>
+        <Head>
+          <title>Line by line Journal</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+
+        <div>
+          <time dateTime="2021-02-17">February 17, 2021</time>
+
+          <h2>Previous entries</h2>
+
+          {
+            entries.map(entry => {
+              return <div key={entry.date}>
+                <time dateTime={entry.date}>{entry.date}</time>
+                <p>{entry.text}</p>
+              </div>
+            })
+          }
+
+          <textarea placeholder="Tell us about your day" />
+        </div>
+      </div>
+    )
+  }
 }
