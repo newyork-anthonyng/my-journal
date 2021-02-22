@@ -1,12 +1,13 @@
 import { Machine, assign } from 'xstate';
-import { fetchEntries } from '../fetchApi';
+import { fetchEntries, saveEntry } from '../fetchApi';
 
 export default Machine({
   id: 'journal',
   initial: 'loading',
   context: {
     entries: [],
-    todaysEntry: null
+    todaysEntry: null,
+    text: ''
   },
   states: {
     loading: {
@@ -41,15 +42,68 @@ export default Machine({
 
     read: {},
 
-    write: {},
+    write: {
+      initial: 'noError',
+
+      states: {
+        noError: {},
+        error: {
+          initial: 'empty',
+          states: {
+            empty: {},
+            api: {}
+          }
+        }
+      },
+
+      on: {
+        CACHE_INPUT: {
+          actions: assign((_, event) => {
+            return {
+              text: event.data
+            }
+          }),
+          target: 'write.noError'
+        },
+        SAVE: [
+          {
+            cond: 'isTextEmpty',
+            target: 'write.error.empty'
+          },
+          { target: 'loading_save' }
+        ]
+      }
+    },
+
+    loading_save: {
+      invoke: {
+        id: 'saveJournalEntry',
+        src: 'saveJournalEntry',
+        onDone: {
+          actions: assign((_, event) => {
+            return event.data;
+          }),
+          target: 'read'
+        },
+        onError: {
+          target: 'write.error.api'
+        }
+      }
+    }
   }
 }, {
   guards: {
     didJournalToday: (context) => {
       return !!context.todaysEntry;
+    },
+    isTextEmpty: (context) => {
+      return context.text.length === 0;
     }
   },
   services: {
-    fetchJournalEntries: fetchEntries
+    fetchJournalEntries: fetchEntries,
+    saveJournalEntry: (context) => {
+      return saveEntry(context.text);
+    }
   },
 });
