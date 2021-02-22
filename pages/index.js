@@ -15,6 +15,10 @@ export default function Home() {
     return <p>There was a problem loading. Please refresh the page.</p>
   }
 
+  function handleEditButtonClick() {
+    send({ type: 'EDIT' });
+  }
+
   if (state.matches("read")) {
     return (
       <div className={styles.container}>
@@ -41,6 +45,7 @@ export default function Home() {
           <div>
             <time dateTime={todaysEntry.date}>{todaysEntry.date}</time>
             <p>{todaysEntry.text}</p>
+            <button onClick={handleEditButtonClick}>Edit</button>
           </div>
         </div>
       </div>

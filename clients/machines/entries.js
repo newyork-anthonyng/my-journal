@@ -40,7 +40,18 @@ export default Machine({
       type: 'final'
     },
 
-    read: {},
+    read: {
+      on: {
+        EDIT: {
+          actions: assign(context => {
+            return {
+              text: context.todaysEntry.text
+            }
+          }),
+          target: 'write'
+        }
+      }
+    },
 
     write: {
       initial: 'noError',
